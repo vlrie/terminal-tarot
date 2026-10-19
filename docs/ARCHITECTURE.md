@@ -2,7 +2,7 @@
 
 ## Components and state
 
-Use a small Python package with `cli`, `deck`, `draw`, `art`, `display`, `providers`, and `storage` modules. Python 3.12+, Rich, wcwidth, and a grapheme-aware tokenizer are the proposed dependencies. Confirm exact supported versions when implementing and lock them then. Use asyncio subprocesses and event handling; no heavyweight full-screen framework is required unless the first rendering spike demonstrates a need.
+Use a small Python package with `cli`, `deck`, `draw`, `art`, `display`, `providers`, and `storage` modules. The implementation uses Python 3.12+ and its standard library only: ANSI RGB cell rendering, termios input, asyncio event handling/subprocesses, Unicode width checks, and TOML configuration. External artwork is validated to contain only single-cell non-combining glyphs; other inputs receive cell-aware clipping and wrapping. No runtime packages or full-screen framework are needed.
 
 `Draw` contains schema/algorithm version, immutable ordered card IDs, orientations, spread, deck fingerprint, date/timezone when applicable, and source mode. `Session` adds selected card, visibility, terminal size, question in memory, and provider state. Provider states: idle, pending, complete, failed, cancelled. Each request carries a generation ID; discard late results from a replaced draw. Visibility is independent of provider completion.
 
@@ -14,7 +14,7 @@ Resolution order: `--art-dir`, configured art directory, known arttime installat
 
 Verified on the local arttime installation on 2026-10-19: 78 `textart/tarot-*` files. Filenames encode major arcana `00..21`, then wands, cups, swords, coins `01..14`. Each file starts with a message/header line; the following rows combine the illustration on the left with title and upright/reversed meanings on the right. These are ANSI truecolor files using Unicode Symbols for Legacy Computing, not plain ASCII images.
 
-Build a manifest with explicit stable IDs, names, source filenames, source SHA-256, illustration bounds, and attribution fields. Sort by documented suit/rank order, never filesystem enumeration. Validate every file before display. Derive bounds using parsed terminal cells, with per-file overrides if necessary. Do not assume byte offsets or a universal fixed width. Do not rotate the entire combined art-and-meaning panel.
+The runtime manifest has stable IDs, names, source filenames, source SHA-256, and illustration grids. Artwork provenance and unresolved individual credits are recorded in CREDITS.md; no asset is distributed. Sort by documented suit/rank order, never filesystem enumeration. Validate every file before display. Derive bounds using parsed terminal cells, with per-file overrides if necessary. Do not assume byte offsets or a universal fixed width. Do not rotate the entire combined art-and-meaning panel.
 
 The local launcher references LICENSE_CODE, LICENSE_ART, and LICENSE_ADDENDUM_CFLA; the installed share directory lacks them. Their exact current terms were not verified during scoping. Upstream asset redistribution and derivative-art permissions remain a packaging prerequisite. A fork is authorized by the user if needed; first prefer a companion app loading the existing deck. Forking alone does not resolve licensing.
 
@@ -36,13 +36,13 @@ Full-deck and major-only manifests have different fingerprints. Version any chan
 
 ## Provider boundary
 
-Define a provider as an executable plus argument vector and a transport contract: UTF-8 prompt on stdin, UTF-8 answer on stdout, success exit status zero. Launch with `shell=False` from an empty private temporary working directory, with stdin closed after writing. Keep terminal input attached to Arcana, never to the provider. No repository inspection, tool permissions, or agent sandbox bypasses are required for a reading.
+Define a custom provider as an executable plus argument vector and a transport contract: UTF-8 prompt on stdin, UTF-8 answer on stdout, success exit status zero. Launch with `shell=False` from an empty private temporary working directory, with stdin closed after writing. Keep terminal input attached to Arcana, never to the provider. No repository inspection, tool permissions, or agent sandbox bypasses are required for a reading.
 
-Ship a tested generic adapter first. Named `claude` and `codex` adapters are planned, not yet verified command recipes. Inspect each installed CLI's help and supported noninteractive/read-only behavior during implementation; confirm stdin, output format, config loading, and cancellation in an isolated fixture. If an adapter cannot run without agent tools or workspace access, do not ship that adapter as supported. Do not guess current CLI flags in public documentation.
+The generic adapter is tested with local fixture executables. Named Claude and Codex adapters use contracts checked against installed CLI help; tested versions and remaining live-service checks are in VERIFICATION.md. Claude disables tools, customizations, MCP, and persistence. Codex uses ephemeral read-only execution, disables the shell-tool feature and web search, and skips user config/rules. These settings constrain agent behavior but are not an OS sandbox for the provider itself. Codex JSON events are parsed to retain only completed agent messages. Users who require strict tool-free provider behavior should use Claude or a custom plain-completion CLI.
 
 Use a 45-second default timeout, 64 KiB stdout cap, bounded stderr capture, output sanitation, and no raw errors in the UI. Cancel the whole child process group on quit, retry, or new draw; terminate then kill after a short grace period. No orphan requests. Do not claim generic executables are sandboxed: configured commands are trusted user configuration. Avoid shell-string command configuration.
 
-The prompt supplies only structured card data, original local keywords, positions, style/length rules, and an optional question. Delimit question text as user content, never executable instructions. Never include seed material or surrounding project files. Final output is buffered before display; hidden mode never prints it.
+The prompt supplies only structured card data, original Arcana reflection prompts, positions, style/length rules, and an optional question. Delimit question text as user content, never executable instructions. Never include seed material or surrounding project files. Final output is buffered before display; hidden mode never prints it.
 
 ## Files and failure handling
 

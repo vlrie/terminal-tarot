@@ -8,55 +8,116 @@ One card for the day. Three for a question. A quiet place among your panes.
 
 </div>
 
-Arcana is a proposed terminal tarot app built around the artwork in [arttime](https://github.com/poetaman/arttime). Draw a card, leave it beside your work, and return to it when something catches your eye. An optional AI reading offers a few words to sit with. Keep those words hidden until you want them.
+Arcana brings the tarot artwork in [arttime](https://github.com/poetaman/arttime) into a persistent terminal pane. Draw a card, leave it beside your work, and return when something catches your eye. An optional background AI reading offers a few words to sit with. Those words stay hidden until you ask for them.
 
-**Status: scoped and ready to build.** This repository contains the product specification, technical design, and implementation plan. The commands below describe the intended interface; the application is not implemented yet.
+## Begin
+
+Requires **Python 3.12+**, [uv](https://docs.astral.sh/uv/), and a Linux terminal. Your existing arttime installation supplies the artwork. Without artwork, Arcana still works with named cards and original reflection prompts.
 
 ```sh
-arcana 1                         # today's card, held open in this pane
+git clone <your-repository-url> arcana
+cd arcana
+./arcana 1
+```
+
+Already in this checkout? Just run `./arcana 1`. The launcher needs no package installation and downloads no runtime dependencies. To make `arcana` available everywhere:
+
+```sh
+uv tool install .
+arcana 1
+```
+
+Use a terminal font with Unicode Symbols for Legacy Computing support and a dark background. Arcana preserves the deck's original colors. Set `--art-dir /path/to/arttime/textart` if your installation is elsewhere. On small panes, cards collapse to readable names; enlarge the pane to see the full illustration.
+
+## The ritual
+
+```sh
+arcana 1                         # today's card; stays open
+arcana 1 --ritual                # privately enter a word for today's draw
 arcana 3                         # situation · tension · invitation
-arcana 3 --ritual                # quietly ask for a seed word before drawing
-arcana 1 --provider claude       # cards first; interpretation arrives in the background
-arcana 3 --private               # artwork only; interpretation never enters the terminal
-arcana 1 --once                  # print a static draw and exit
+arcana 3 --ritual                # a repeatable spread from a privately entered word
+arcana 3 --major                 # draw only from the major arcana
+arcana 1 --upright-only          # omit reversed cards
+arcana 1 --private               # artwork only; no reading request or reveal
+arcana 1 --once                  # print and leave
+arcana 3 --json                  # public card data, without a reading
 ```
 
-Think of a word. You may enter it without echo, or leave it unspoken and let chance choose. Arcana can hash that word into a repeatable draw. The word stays on your machine and is never included in the interpretation request.
+Think of a word. Enter it without echo, or press Enter for chance. The word is hashed into the draw and stays in memory only. A single-card seeded draw includes the date; a three-card seeded spread does not. Identical inputs and deck version reproduce the cards and orientations. Interpretations may differ.
 
-The whole deck belongs here: 78 cards, including reversals. A reversed card changes both the illustration's orientation and the reading. The title remains readable.
+Without a seed word, your daily card is saved locally and remains the same when reopened that day. Three-card spreads use fresh randomness. All draws use the full 78-card deck unless `--major` is set, and three-card spreads never repeat a card. Reversals are enabled by default, including a rotated illustration and a readable external title.
 
-Arcana lives in a tmux pane by default. It does not disappear when the reading finishes, and it does not change tomorrow's card underneath you. Press `d` to reveal or hide the divination, `h` to hide all private text immediately, and `q` to leave. Reading text starts hidden. `--private` disables revealing it for the entire session.
+## A pane to live beside
 
-> A card is an invitation to notice. The interpretation should leave room for your own answer.
+Open a tmux split and run `arcana 1`. Arcana stays there until you quit. It handles resizing, shows three cards side by side when there is room, and lets you browse one at a time when there is not. It never changes your tmux layout or silently replaces a card at midnight.
 
-### The shape of the first release
+| Key | Action |
+| --- | --- |
+| `d` | Reveal or hide divination; hidden at launch |
+| `h` | Hide private text immediately |
+| `j` / `k`, `→` / `←` | Browse cards in a narrow pane |
+| `↑` / `↓` | Scroll a revealed reading |
+| `r` | Retry the reading for the same cards |
+| `n` | Draw again; daily and seeded rules still apply |
+| `q`, Ctrl-C | Quit and cancel the background request |
 
-- A persistent, resize-aware terminal display; side-by-side cards when they fit, one card at a time when they do not.
-- Daily single-card draws and three-card spreads without duplicate cards.
-- Optional word-seeded draws, with a versioned algorithm for replay.
-- Upright and reversed artwork, with readable titles and explicit orientation labels.
-- Background interpretations through an explicitly selected CLI provider; no provider is required to draw.
-- Hidden-by-default divination, a hard artwork-only mode, and no journal unless you explicitly save.
+`--private` is an artwork-only session: the provider never starts and reveal is disabled. Questions and readings are never saved by Arcana. The normal display uses the terminal's alternate screen; hidden text is never sent to the screen before reveal. Hiding cannot retract screenshots, tmux capture history, or recordings of text you already revealed.
 
-The intended stack is Python 3.12+, Rich for rendering, and a small event loop. No database, account, web server, or daemon. Linux and macOS are the initial targets. tmux is a host, not a dependency.
+## Give the cards a voice
 
-### Read the project
-
-[Product specification](docs/SPEC.md) · [Technical design](docs/ARCHITECTURE.md) · [Build plan](docs/PLAN.md) · [Credits and artwork policy](CREDITS.md)
-
-### Thanks, arttime
-
-This project starts with admiration for [arttime](https://github.com/poetaman/arttime), authored and maintained by **Aman Mehra**, and the artists represented in its collection. Its tarot artwork is the visual foundation of Arcana's intended first deck. Arcana is an independent companion project, with no claim of affiliation or endorsement.
-
-No arttime code or artwork is redistributed here. The first implementation will read an existing local installation. Artwork licensing, individual credits, and any requirements for modified or bundled assets must be verified before vendoring or release packaging; see [CREDITS.md](CREDITS.md).
-
-### Publish this repository
-
-This is an independent Git repository on branch `main`. Once you create an empty remote:
+No AI provider is required. Press `d` without one for a short local reflection. To use an already authenticated CLI:
 
 ```sh
-git remote add origin <your-repository-url>
-git push -u origin main
+arcana 1 --provider claude
+arcana 3 --ritual --provider codex
+arcana 3 --provider claude --question   # privately prompt for a question
+arcana 1 --once --interpret            # explicitly print a local reflection
 ```
 
-The repository has no runtime dependencies to install yet. Build milestones and their acceptance checks are in [the plan](docs/PLAN.md).
+The artwork appears first. The request runs in the background, buffers its answer, and leaves it hidden. A failed or slow provider leaves your cards and local reflection available. The default timeout is 45 seconds.
+
+Providers receive only card names, orientations, positions, original reflection prompts, and an optional question you explicitly enter. **Your seed word is never sent.** A local CLI may contact a remote model service. Arcana does not manage authentication or override your model choice.
+
+Named adapters were checked against Claude Code 2.1.302 and Codex CLI 0.163.0 help. Claude is invoked with tools disabled, safe mode, no MCP servers, and no session persistence. Codex uses an ephemeral read-only session, no user config/rules, disabled web search, and the shell-tool feature disabled. Both run from an empty temporary directory. These settings reduce agent behavior; they are not an OS security boundary. Live authenticated responses still depend on your provider/version. Other CLIs can use the generic adapter below.
+
+### Configuration
+
+Linux: `~/.config/arcana/config.toml` (respects `XDG_CONFIG_HOME`). macOS path: `~/Library/Application Support/arcana/config.toml`. Use `--config PATH` to override. CLI flags take precedence.
+
+```toml
+provider = "claude"       # none, claude, codex, custom
+# art_dir = "/path/to/arttime/textart"
+# timezone = "Asia/Dubai"
+timeout = 45
+```
+
+For another CLI, use an argument array, never a shell string:
+
+```toml
+provider = "custom"
+argv = ["my-reading-cli", "--plain"]
+timeout = 60
+```
+
+The custom command reads the UTF-8 prompt from stdin and writes only the answer to stdout. It runs in a private temporary directory. Use an absolute executable path if it is not on `PATH`; relative script paths must also be absolute. Custom commands are trusted configuration and keep responsibility for their own tools, logs, and privacy.
+
+Daily state lives under `~/.local/share/arcana/` on Linux (respects `XDG_DATA_HOME`). It contains a random install identity and public daily draws, never a word, question, or interpretation. `--data-dir PATH` overrides that location. State is written atomically under a lock. Use `--date YYYY-MM-DD` and `--timezone IANA/Zone` for an explicit daily identity.
+
+## Development
+
+```sh
+PYTHONPATH=src uv run --no-project python -m unittest discover -s tests -v
+uv build
+```
+
+There are no runtime dependencies. Tests cover deterministic draws, concurrent daily storage, terminal controls, background subprocess failure/cancellation, hidden input, and actual reveal/hide/resize behavior through a pseudo-terminal. The installed arttime deck is tested when available. Linux is verified; macOS is a portability target that still needs an on-device smoke test. Windows is not supported.
+
+[Specification](docs/SPEC.md) · [Technical design](docs/ARCHITECTURE.md) · [Build plan and status](docs/PLAN.md) · [Verification notes](docs/VERIFICATION.md)
+
+## Thanks, arttime
+
+This project starts with admiration for [arttime](https://github.com/poetaman/arttime), authored and maintained by **Aman Mehra**, and the artists represented in its collection. Its tarot artwork is the visual foundation of Arcana's first deck. Arcana is an independent companion project, with no claim of affiliation or endorsement.
+
+No arttime code or artwork is redistributed here. Cards are loaded from your local installation. Their credits and license terms remain upstream; see [CREDITS.md](CREDITS.md). Original Arcana code and documentation use the [MIT license](LICENSE). Reversed art rotates the cell grid and directional block glyphs; a few lettering and suit glyphs use deliberate approximations described in the verification notes.
+
+> A card is an invitation to notice. The interpretation leaves room for your own answer.

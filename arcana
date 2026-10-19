@@ -1,0 +1,5 @@
+#!/bin/sh
+# Run directly from this checkout; no installation or third-party packages.
+ARCANA_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+export PYTHONPATH="$ARCANA_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+exec uv run --no-project python -m arcana "$@"

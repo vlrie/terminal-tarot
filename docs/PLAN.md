@@ -35,3 +35,9 @@ Accept when a fresh user can install, point at arttime, draw offline, optionally
 ## Later, if the ritual earns it
 
 Explicit journal/export, customizable three-position labels, a user-approved bundled deck, additional providers, and optional tmux launch recipes. Automatic daily replacement, cloud sync, and chat are not prerequisites for a useful release.
+
+## Implementation status
+
+The five milestones have an implemented first version: dependency-free terminal renderer, daily/seeded draws, persistent display, background providers, package metadata, CI, and user documentation. The implementation uses ANSI cell rendering and the Python standard library instead of Rich; this preserves the original 24-bit art colors without installing runtime dependencies.
+
+The code and offline integration checks are complete; macOS on-device testing, authenticated real-provider validation, a full human artwork review, and upstream licensing for any future asset redistribution remain external release checks. No artwork is bundled. See VERIFICATION.md for exact coverage and limits.

@@ -18,7 +18,7 @@ An unseeded single-card invocation retrieves or creates today's local draw. Use 
 
 Three-card draws use fresh operating-system randomness by default. `--ritual` asks: “Think of a word. Enter it to weave it into the draw, or press Enter for chance.” Input has no echo. Noninteractive stdin never triggers a prompt; fail clearly if ritual input is requested without a terminal. EOF or Escape cancels before drawing.
 
-A supplied word creates a deterministic seed. Single-card seeded draws incorporate the date; three-card seeded draws do not. Preserve case, normalize Unicode to NFC, and strip leading/trailing whitespace. Do not pass the word in an argument, environment variable, provider prompt, or log. No seed digest is stored by default: short words can be guessed from hashes. Explicit export warns that replay data can expose low-entropy seeds to guessing.
+A supplied word creates a deterministic seed. Single-card seeded draws incorporate the date; three-card seeded draws do not. Preserve case, normalize Unicode to NFC, and strip leading/trailing whitespace. Do not pass the word in an argument, environment variable, provider prompt, or log. No seed digest is stored: short words can be guessed from hashes. Public JSON output omits seed material; secret-bearing replay export is deferred.
 
 A new date never silently replaces a card already on screen. Show a small “new day available” indicator. `n` explicitly draws for the current day or creates a fresh unseeded spread. Repeating a seeded draw keeps its result; changing the word requires a new ritual. Provider choice, hiding text, resize, and retry never redraw cards.
 

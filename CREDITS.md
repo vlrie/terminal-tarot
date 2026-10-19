@@ -12,7 +12,7 @@ The installed launcher references three upstream documents:
 
 These links identify documents to verify, not a statement of their current terms. They were absent from the installed share directory, and remote retrieval did not succeed during this scoping session. No license permissions are inferred from public availability or installation.
 
-This repository contains original planning prose and no copied arttime code or assets. No project license has been selected yet; public availability alone grants no general reuse license for this repository either. Choose a license for original code before release.
+This repository contains original Arcana code and prose, licensed under MIT (see LICENSE), and no copied arttime code, meaning text, or assets. External artwork retains its own upstream terms. Licensing and artist provenance remain prerequisites for any future asset redistribution.
 
 The user authorizes an upstream fork if needed. Prefer a companion application initially. Before vendoring, forking modified assets, or distributing reversed variants, pin an upstream commit, review all applicable license documents, retain notices, identify artwork credits, document modifications, and include the required terms. If terms prevent the intended distribution, retain local loading or obtain separately licensed artwork.
 
