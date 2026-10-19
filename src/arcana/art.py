@@ -43,6 +43,24 @@ def rotate(grid: tuple[tuple[Cell, ...], ...]) -> tuple[tuple[Cell, ...], ...]:
     return tuple(tuple(replace(c, glyph=ROTATION.get(c.glyph, c.glyph)) for c in reversed(row)) for row in reversed(grid))
 
 
+def fit(grid: tuple[tuple[Cell, ...], ...], columns: int, rows: int) -> tuple[tuple[Cell, ...], ...]:
+    """Fit an illustration within a pane; sample cells without mutating source art.
+
+    Keep the original aspect ratio and never upscale glyphs. Endpoint sampling
+    retains the border and makes restoring the original size lossless.
+    """
+    if not grid or columns < 1 or rows < 1:
+        return ()
+    height, width = len(grid), len(grid[0])
+    scale = min(1, columns / width, rows / height)
+    target_w, target_h = max(1, int(width * scale)), max(1, int(height * scale))
+    if (target_w, target_h) == (width, height):
+        return grid
+    def index(position: int, target: int, source: int) -> int:
+        return round(position * (source - 1) / (target - 1)) if target > 1 else source // 2
+    return tuple(tuple(grid[index(y, target_h, height)][index(x, target_w, width)] for x in range(target_w)) for y in range(target_h))
+
+
 def parse(source: str) -> tuple[tuple[tuple[Cell, ...], ...], list[str]]:
     """Reject all controls except SGR; require a consistent one-cell art grid."""
     lines = source.splitlines()

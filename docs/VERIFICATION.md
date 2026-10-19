@@ -34,3 +34,9 @@ Run the suite and build a wheel in a clean environment. Inspect wheel contents t
 - `ty check src` passes.
 - An isolated tmux server passed persistent full-art rendering at 110×45, a three-position spread, resize to 38×18, and clean quit. It did not use or change the user's existing tmux sessions.
 - Independent Standards and Spec reviews found three distinct defects; all were fixed, covered by regressions, and confirmed resolved by the reviewers.
+
+## Responsive layout and joint readings
+
+Artwork now scales down within both width and height constraints and restores its original detail on expansion. This is terminal-cell downsampling, so small views lose fine detail; glyphs are never upscaled. Synthetic color-cell fixtures verify source immutability, border retention, bounded display widths, and both portrait orientations. A PTY integration check moves a completed joint reading through 120×40, 80×24, and 44×18 layouts, retaining all three position headings and artwork, then verifies hiding survives another resize. Resizing makes no additional provider call. Tests also cover stale COLUMNS/LINES values and scroll clamping at the new reading width.
+
+Three-card prompts explicitly ask for one connected reading, and the offline fallback ties the situation, tension, and invitation together with a shared-suit or mixed-perspective theme. Single-card interpretation behavior is unchanged.

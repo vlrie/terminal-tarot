@@ -160,9 +160,38 @@ class TerminalTests(unittest.TestCase):
             try:
                 terminal.read_until(b"divination hidden")
                 terminal.send(b"d")
-                self.assertIn(b"What would", terminal.drain())
+                self.assertIn(b"The spread, together", terminal.drain())
                 terminal.send(b"hq")
                 self.assertEqual(terminal.process.wait(timeout=1), 0)
-                self.assertNotIn(b"What would", terminal.drain())
+                self.assertNotIn(b"The spread, together", terminal.drain())
+            finally:
+                terminal.close()
+
+    def test_resize_keeps_artwork_and_one_joint_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            requests = root / "requests"
+            config = root / "provider.toml"
+            code = f"import sys,json,pathlib; text=sys.stdin.read(); cards=json.loads(next(s for s in text.splitlines() if s.startswith('DRAW_JSON: '))[11:]); assert len(cards)==3; pathlib.Path({str(requests)!r}).open('a').write('one\\n'); print('JOINT_SENTINEL')"
+            config.write_text('provider="custom"\nargv=' + json.dumps([sys.executable, "-c", code]))
+            terminal = Terminal(["3", "--config", str(config)], root, columns=120, rows=40)
+            try:
+                terminal.read_until(b"reading ready")
+                terminal.send(b"d")
+                terminal.read_until(b"JOINT_SENTINEL")
+                for columns, rows in [(80, 24), (44, 18), (120, 40)]:
+                    terminal.resize(columns, rows)
+                    output = terminal.drain(0.2)
+                    self.assertIn(b"JOINT_SENTINEL", output)
+                    self.assertIn(b"Situation", output)
+                    self.assertIn(b"Tension", output)
+                    self.assertIn(b"Invitation", output)
+                    self.assertIn("╭".encode(), output)  # artwork survives short panes
+                    self.assertIn(b"The spread, together", output)
+                terminal.send(b"h")
+                terminal.drain()
+                terminal.resize(80, 24)
+                self.assertNotIn(b"JOINT_SENTINEL", terminal.drain())
+                self.assertEqual(requests.read_text(), "one\n")
             finally:
                 terminal.close()

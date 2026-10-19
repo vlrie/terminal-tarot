@@ -27,7 +27,7 @@ uv tool install .
 arcana 1
 ```
 
-Use a terminal font with Unicode Symbols for Legacy Computing support and a dark background. Arcana preserves the deck's original colors. Set `--art-dir /path/to/arttime/textart` if your installation is elsewhere. On small panes, cards collapse to readable names; enlarge the pane to see the full illustration.
+Use a terminal font with Unicode Symbols for Legacy Computing support and a dark background. Arcana preserves the deck's original colors. Set `--art-dir /path/to/arttime/textart` if your installation is elsewhere. Artwork scales down to fit smaller panes and returns to its original detail when you enlarge them. Extremely small panes use readable card names.
 
 ## The ritual
 
@@ -49,7 +49,7 @@ Without a seed word, your daily card is saved locally and remains the same when 
 
 ## A pane to live beside
 
-Open a tmux split and run `arcana 1`. Arcana stays there until you quit. It handles resizing, shows three cards side by side when there is room, and lets you browse one at a time when there is not. It never changes your tmux layout or silently replaces a card at midnight.
+Open a tmux split and run `arcana 1`. Arcana stays there until you quit. It adapts to pane width and height: artwork scales down instead of disappearing in short panes, three cards stay side by side where practical, and very narrow panes let you browse one at a time. A revealed reading moves beside the cards in wide panes and below them in narrower ones. Resizing preserves your draw and hide/reveal state. It never changes your tmux layout or silently replaces a card at midnight.
 
 | Key | Action |
 | --- | --- |
@@ -74,7 +74,7 @@ arcana 3 --provider claude --question   # privately prompt for a question
 arcana 1 --once --interpret            # explicitly print a local reflection
 ```
 
-The artwork appears first. The request runs in the background, buffers its answer, and leaves it hidden. A failed or slow provider leaves your cards and local reflection available. The default timeout is 45 seconds.
+The artwork appears first. For three cards, a single request produces one joined reading: how the tension challenges the situation, and how the invitation responds to both. Without a provider, the local reflection also connects the spread as a whole. The request runs in the background, buffers its answer, and leaves it hidden. Resize or browse cards without triggering another reading. A failed or slow provider leaves your cards and local reflection available. The default timeout is 45 seconds.
 
 Providers receive only card names, orientations, positions, original reflection prompts, and an optional question you explicitly enter. **Your seed word is never sent.** A local CLI may contact a remote model service. Arcana does not manage authentication or override your model choice.
 

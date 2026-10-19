@@ -24,7 +24,7 @@ A new date never silently replaces a card already on screen. Show a small “new
 
 ## Life inside tmux
 
-Default to an alternate-screen interface. Keep artwork visible after interpretation finishes, fails, or times out. Never invoke tmux commands or change pane layout. Compute layout from available terminal cells, handle SIGWINCH, and redraw from state. In a wide pane show three illustrations side by side. In a narrower pane show one full card with `←`/`→` or `j`/`k` navigation and a three-position summary. If height or width cannot contain a complete illustration, use a compact named-card view rather than corrupting art through wrapping.
+Default to an alternate-screen interface. Keep artwork visible after interpretation finishes, fails, or times out. Never invoke tmux commands or change pane layout. Compute layout from available terminal cells, handle SIGWINCH, and redraw from state. Fit artwork to the available cell width and height with aspect-preserving downsampling, restoring original detail on expansion. Show three illustrations side by side when each card has at least 12 columns; in narrower panes show one card with `←`/`→` or `j`/`k` navigation. Very small panes use a compact named-card view. A revealed reading sits beside the cards when enough width is available and below them otherwise. Use the terminal file descriptor size rather than stale COLUMNS/LINES environment variables; signal handling and a low-frequency size check both trigger reflow. Resizing does not redraw cards, re-request interpretation, or change privacy state.
 
 Color should come from the cards. Surround them with quiet spacing, a restrained title, and one dim help line. Respect `NO_COLOR`, `TERM=dumb`, and unsupported glyphs. Static mode is used for non-TTY output and never waits for input. Reduced-motion behavior is the default; animation is outside v1.
 
@@ -50,7 +50,7 @@ No journal, question persistence, provider transcripts, or reading cache by defa
 
 ## Interpretation voice
 
-One card: 60–100 words. Three cards: 120–180 words. Name each card and its orientation, relate the positions, and end with one useful reflective question. Warm, spare, specific prose. No fatalism, certainty, inflated mysticism, or claims to know what another person thinks. Reversal can suggest inwardness, delay, excess, or resistance rather than simple misfortune. These are reflection prompts, not instructions to make consequential decisions.
+One card: 60–100 words. Three cards: 120–180 words. Name each card and its orientation, relate the positions, and end with one useful reflective question. Three cards receive one cohesive reading of the spread as a whole: connect how Tension challenges Situation and how Invitation responds to both. The offline fallback also connects the cards and their shared theme instead of presenting three isolated meanings. Warm, spare, specific prose. No fatalism, certainty, inflated mysticism, or claims to know what another person thinks. Reversal can suggest inwardness, delay, excess, or resistance rather than simple misfortune. These are reflection prompts, not instructions to make consequential decisions.
 
 The draw is authoritative; the model cannot select or replace cards. Provider failure shows a short generic status and leaves local card meanings available when revealed. Raw CLI errors and terminal escapes never appear in the display.
 

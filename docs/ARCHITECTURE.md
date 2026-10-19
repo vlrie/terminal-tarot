@@ -6,7 +6,7 @@ Use a small Python package with `cli`, `deck`, `draw`, `art`, `display`, `provid
 
 `Draw` contains schema/algorithm version, immutable ordered card IDs, orientations, spread, deck fingerprint, date/timezone when applicable, and source mode. `Session` adds selected card, visibility, terminal size, question in memory, and provider state. Provider states: idle, pending, complete, failed, cancelled. Each request carries a generation ID; discard late results from a replaced draw. Visibility is independent of provider completion.
 
-The rendering function consumes Session and terminal size. It never draws cards or launches a provider. The draw engine never reads terminal state. Provider adapters never modify Draw. These boundaries make hide/reveal and retry safe.
+The rendering function consumes Session and terminal size. It downscales art cells to fit width and height, with endpoint sampling to retain borders and no upscaling of glyphs; original grids remain immutable. Wide revealed layouts use a reading column, while narrower layouts reserve a reading region below the cards. Scroll position is clamped against the actual reading width after reflow. The terminal file descriptor is authoritative for pane size, even when COLUMNS/LINES are stale. It never draws cards or launches a provider. The draw engine never reads terminal state. Provider adapters never modify Draw. These boundaries make hide/reveal and retry safe.
 
 ## Deck discovery and provenance
 
