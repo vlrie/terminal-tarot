@@ -27,3 +27,10 @@ No program can remove already revealed text from another process's recordings. U
 ## Checks to repeat before public release
 
 Run the suite and build a wheel in a clean environment. Inspect wheel contents to ensure no third-party art or private runtime data is included. Test tmux at wide/narrow sizes and inspect upright/reversed art with the intended font. Validate any provider version you intend to advertise with a live authenticated request. A full human aesthetic review of all reversed illustrations remains advisable before publishing screenshots or bundling artwork. Verify upstream licensing before any redistribution of assets.
+
+## Local completion record
+
+- 20 offline tests pass, including fail-before/pass-after regressions for batched privacy keys, Unicode Backspace, and wide text in one-column panes.
+- `ty check src` passes.
+- An isolated tmux server passed persistent full-art rendering at 110×45, a three-position spread, resize to 38×18, and clean quit. It did not use or change the user's existing tmux sessions.
+- Independent Standards and Spec reviews found three distinct defects; all were fixed, covered by regressions, and confirmed resolved by the reviewers.

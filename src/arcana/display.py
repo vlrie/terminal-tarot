@@ -15,7 +15,7 @@ from .art import ansi_row, rotate
 from .deck import Deck
 from .draw import Draw
 from .providers import ProviderError, interpret, prompt
-from .text import clean, clip, width, wrap
+from .text import clip, width, wrap
 
 
 @dataclass
@@ -32,6 +32,18 @@ class Session:
 
 def local_reading(draw: Draw, deck: Deck) -> str:
     return "\n\n".join(f"{p.position} · {deck.by_id(p.card_id).name} ({'reversed' if p.reversed else 'upright'})\n{deck.by_id(p.card_id).meaning(p.reversed)}" for p in draw.picks) + "\n\nWhat would it look like to give this a little attention today?"
+
+
+def split_keys(data: bytes) -> tuple[list[bytes], bytes]:
+    """Consume every key, retaining incomplete arrow escape sequences."""
+    keys = []
+    while data:
+        if data in (b"\x1b", b"\x1b["):
+            break
+        size = 3 if data.startswith(b"\x1b[") and len(data) >= 3 else 1
+        keys.append(data[:size])
+        data = data[size:]
+    return keys, data
 
 
 def render(session: Session, deck: Deck, columns: int, rows: int, color: bool = True) -> str:
@@ -107,6 +119,7 @@ async def run(session: Session, deck: Deck, new_draw: Callable[[], Draw], day_ch
     generation = 0
     terminal = sys.stdin.fileno()
     saved = termios.tcgetattr(terminal)
+    input_buffer = b""
 
     def repaint():
         size = shutil.get_terminal_size()
@@ -135,11 +148,17 @@ async def run(session: Session, deck: Deck, new_draw: Callable[[], Draw], day_ch
             provider_task = asyncio.create_task(request(generation, session.draw))
 
     def input_ready():
+        nonlocal input_buffer
         try:
             data = os.read(terminal, 128)
         except OSError:
             data = b""
-        events.put_nowait(("key", data))
+        if not data:
+            events.put_nowait(("key", b""))
+            return
+        keys, input_buffer = split_keys(input_buffer + data)
+        for key in keys:
+            events.put_nowait(("key", key))
 
     try:
         tty.setcbreak(terminal)

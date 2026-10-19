@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from arcana.art import Cell, ansi_row, parse, rotate
+from arcana.art import ansi_row, parse, rotate
 from arcana.deck import load
 from arcana.display import Session, render
 from arcana.draw import create
@@ -103,3 +103,18 @@ class CoreTests(unittest.TestCase):
                 path.write_text(bad)
                 with self.assertRaises(ValueError):
                     load_config(path)
+
+    def test_wide_text_in_one_column_finishes(self):
+        import os
+        import subprocess
+        import sys
+        result = subprocess.run([sys.executable, "-c", "from arcana.text import wrap; assert wrap('界',1)==['?']"], env=dict(os.environ), capture_output=True, timeout=1)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_private_unicode_backspace(self):
+        from arcana.cli import hidden_input
+        for encoded, expected in [(b"\xc3\xa9a", "é"), (b"\xc3\xa9", "")]:
+            with self.subTest(encoded=encoded):
+                with patch("arcana.cli.sys.stdin") as stdin, patch("arcana.cli.sys.stdout") as stdout, patch("arcana.cli.termios.tcgetattr", return_value=[]), patch("arcana.cli.termios.tcsetattr"), patch("arcana.cli.tty.setraw"), patch("arcana.cli.os.read", side_effect=[bytes([b]) for b in encoded] + [b"\x7f", b"\r"]):
+                    stdin.isatty.return_value = stdout.isatty.return_value = True
+                    self.assertEqual(hidden_input("word: "), expected)

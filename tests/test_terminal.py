@@ -153,3 +153,16 @@ class TerminalTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertNotIn(b"\x1b", result.stdout)
         self.assertIn(b"Situation", result.stdout)
+
+    def test_batched_hide_and_quit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            terminal = Terminal(["3"], Path(directory))
+            try:
+                terminal.read_until(b"divination hidden")
+                terminal.send(b"d")
+                self.assertIn(b"What would", terminal.drain())
+                terminal.send(b"hq")
+                self.assertEqual(terminal.process.wait(timeout=1), 0)
+                self.assertNotIn(b"What would", terminal.drain())
+            finally:
+                terminal.close()

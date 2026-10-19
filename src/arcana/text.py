@@ -31,6 +31,8 @@ def clip(value: str, limit: int) -> str:
 
 def wrap(value: str, limit: int) -> list[str]:
     """Wrap sanitized prose by display cells, including unbroken wide words."""
+    if limit < 1:
+        return []
     lines = []
     for paragraph in clean(value).splitlines():
         line = ""
@@ -43,9 +45,16 @@ def wrap(value: str, limit: int) -> list[str]:
                 if line:
                     lines.append(line)
                     line = ""
-                lines.append(part)
-                word = word[len(part):]
+                # A wide glyph cannot fit in a single-column pane. Consume it
+                # with a visible placeholder rather than looping forever.
+                if not part:
+                    lines.append("?")
+                    word = word[1:]
+                else:
+                    lines.append(part)
+                    word = word[len(part):]
             if word:
                 line = line + " " + word if line else word
-        lines.append(line)
+        if line or not paragraph.strip():
+            lines.append(line)
     return lines

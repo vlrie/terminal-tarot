@@ -40,12 +40,9 @@ def hidden_input(message: str) -> str:
                 break
             if c in (b"\x7f", b"\x08"):
                 if data:
-                    # Delete one UTF-8 codepoint without ever echoing it.
-                    data.pop()
-                    while data and (data[-1] & 0xC0) == 0x80:
-                        data.pop()
-                    if data and data[-1] >= 0xC0:
-                        data.pop()
+                    # Edit codepoints rather than bytes; preceding multibyte
+                    # characters must survive deletion of an ASCII character.
+                    data = bytearray(data.decode("utf-8", errors="ignore")[:-1].encode())
             elif len(data) < 4096:
                 data.extend(c)
         return clean(data.decode("utf-8", errors="replace"))
@@ -56,7 +53,7 @@ def hidden_input(message: str) -> str:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="A small tarot ritual, held open in your terminal.", epilog="Pane keys: d reveal/hide, h hide, j/k cards, arrows scroll/navigate, r retry, n draw, q quit. Hiding cannot retract recordings or tmux capture history; --private never prints a reading.")
+    p = argparse.ArgumentParser(prog="arcana", description="A small tarot ritual, held open in your terminal.", epilog="Pane keys: d reveal/hide, h hide, j/k cards, arrows scroll/navigate, r retry, n draw, q quit. Hiding cannot retract recordings or tmux capture history; --private never prints a reading.")
     p.add_argument("count", nargs="?", type=int, choices=(1, 3), default=1, help="1 daily card (default) or 3-card spread")
     p.add_argument("--version", action="version", version=f"arcana {__version__}")
     p.add_argument("--ritual", action="store_true", help="privately ask for a word to seed either draw")
@@ -101,9 +98,7 @@ def main(argv: list[str] | None = None) -> int:
             command(provider, config.argv)
         deck = load(args.art_dir if args.art_dir is not None else config.art_dir, args.major)
         timezone = args.timezone or config.timezone
-        day, zone = today(timezone)
-        if args.date:
-            day = args.date.isoformat()
+        today(timezone)  # Validate the zone before asking for private input.
         for notice in deck.notices:
             print(notice, file=sys.stderr)
         word = normalize(hidden_input("Think of a word. Enter it to weave it into the draw, or Enter for chance: ")) if args.ritual else ""
@@ -152,8 +147,14 @@ def main(argv: list[str] | None = None) -> int:
         return 130
     except BrokenPipeError:
         return 0
-    except (ValueError, OSError, ZoneInfoNotFoundError):
-        # Never include raw exception text: it could contain malicious file
-        # content, config values, or private provider output.
-        print("arcana: cannot continue. Check the art directory, configuration, timezone, and daily-state permissions. For a fresh isolated run, pass --data-dir /tmp/arcana-state.", file=sys.stderr)
+    except ValueError as error:
+        # Domain errors have controlled messages; sanitize any external art
+        # filename/OS diagnostics before presenting them outside the screen.
+        print("arcana: " + clean(str(error))[:240], file=sys.stderr)
+        return 1
+    except ZoneInfoNotFoundError:
+        print("arcana: unknown timezone; use an IANA name such as Asia/Dubai.", file=sys.stderr)
+        return 1
+    except OSError:
+        print("arcana: cannot access the terminal or state directory; check permissions or use --once.", file=sys.stderr)
         return 1
