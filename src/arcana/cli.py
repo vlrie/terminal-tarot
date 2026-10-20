@@ -131,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
                 print()
             if args.interpret:
                 if provider == "none":
-                    from .display import local_reading
+                    from .readings import local_reading
                     print(local_reading(draw, deck))
                 else:
                     try:

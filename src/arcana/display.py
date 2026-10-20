@@ -15,6 +15,7 @@ from .art import ansi_row, fit, rotate
 from .deck import Deck
 from .draw import Draw
 from .providers import ProviderError, interpret, prompt
+from .readings import local_reading
 from .text import clean, clip, width, wrap
 
 
@@ -28,31 +29,6 @@ class Session:
     status: str = "local reflection"
     new_day: bool = False
     scroll: int = 0
-
-
-def local_reading(draw: Draw, deck: Deck) -> str:
-    if len(draw.picks) == 1:
-        pick = draw.picks[0]
-        card = deck.by_id(pick.card_id)
-        return f"{pick.position} · {card.name} ({'reversed' if pick.reversed else 'upright'})\n{card.meaning(pick.reversed)}\n\nWhat would it look like to give this a little attention today?"
-    cards = [deck.by_id(p.card_id) for p in draw.picks]
-    names = [f"{card.name} ({'reversed' if pick.reversed else 'upright'})" for card, pick in zip(cards, draw.picks)]
-    meanings = [card.meaning(pick.reversed) for card, pick in zip(cards, draw.picks)]
-    suits = {card.id.split('-')[0] for card in cards}
-    if suits == {"major"}:
-        thread = "All three are major arcana: consider the larger pattern beneath the immediate question."
-    elif len(suits) == 1:
-        theme = {"wands": "initiative", "cups": "connection", "swords": "discernment", "coins": "material care"}[next(iter(suits))]
-        thread = f"Their shared suit keeps the whole reading close to {theme}; look for one pattern appearing in three forms."
-    else:
-        thread = "The different parts of the deck ask you to connect perspectives rather than settle on the first explanation."
-    reversed_count = sum(pick.reversed for pick in draw.picks)
-    pace = " Let the reversed cards mark where a quieter, slower response may help." if reversed_count else " Let the upright cards suggest a small action you can try and then reassess."
-    return (f"Read together, {names[0]} frames the situation: {meanings[0]} "
-            f"{names[1]} brings the tension into focus: {meanings[1]} "
-            f"{names[2]} offers a way to respond: {meanings[2]}\n\n"
-            f"{thread}{pace} Treat the invitation as a response to the tension within the situation, rather than a separate prediction. "
-            "What small step would honor all three cards together?")
 
 
 def split_keys(data: bytes) -> tuple[list[bytes], bytes]:
@@ -75,30 +51,38 @@ def terminal_size() -> os.terminal_size:
         return shutil.get_terminal_size()
 
 
+def _center(text: str, columns: int) -> str:
+    """Center styled terminal text by visible cells, not ANSI byte count."""
+    remaining = max(0, columns - width(clean(text)))
+    left = remaining // 2
+    return " " * left + text + " " * (remaining - left)
+
+
 def _cards(session: Session, deck: Deck, columns: int, height: int, color: bool) -> list[str]:
+    if height < 1:
+        return []
     gap = 3
     count = len(session.draw.picks)
-    all_fit = count == 1 or columns >= count * 12 + gap * (count - 1)
+    all_fit = count == 1 or columns >= count * 10 + gap * (count - 1)
     chosen = list(range(count)) if all_fit else [session.selected]
     panel = min(25, max(1, (columns - gap * (len(chosen) - 1)) // len(chosen)))
     blocks = []
     for index in chosen:
         pick = session.draw.picks[index]
         card = deck.by_id(pick.card_id)
-        lines = [clip(pick.position + f"  {index + 1}/{count}", panel), clip(card.name, panel), clip("reversed ↓" if pick.reversed else "upright ↑", panel)]
+        labels = [pick.position + f"  {index + 1}/{count}", card.name, "reversed ↓" if pick.reversed else "upright ↑"]
+        lines = [_center(clip(label, panel), panel) for label in labels]
         grid = fit(rotate(card.grid) if pick.reversed else card.grid, panel, max(0, height - 3))
-        for row in grid:
-            lines.append(ansi_row(row, color) + " " * max(0, panel - len(row)))
+        lines += [_center(ansi_row(row, color), panel) for row in grid]
         blocks.append(lines)
     lines = []
     for row in range(max(map(len, blocks))):
-        pieces = []
-        for block in blocks:
-            text = block[row] if row < len(block) else ""
-            # Art rows already include padding; labels are unstyled text.
-            pieces.append(text + " " * max(0, panel - width(text)) if row < 3 or not text else text)
-        lines.append((" " * gap).join(pieces).rstrip())
-    return lines[:height]
+        pieces = [block[row] if row < len(block) else " " * panel for block in blocks]
+        lines.append(_center((" " * gap).join(pieces), columns))
+    lines = lines[:height]
+    # Give the whole spread a quiet center, including a single card in a wide pane.
+    top = max(0, (height - len(lines)) // 2)
+    return [""] * top + lines + [""] * max(0, height - top - len(lines))
 
 
 def _reading(session: Session, deck: Deck, columns: int, height: int) -> list[str]:
@@ -118,10 +102,10 @@ def _reading(session: Session, deck: Deck, columns: int, height: int) -> list[st
     return lines
 
 
-def render(session: Session, deck: Deck, columns: int, rows: int, color: bool = True) -> str:
-    columns, rows = max(1, columns - 1), max(1, rows)
+def _content(session: Session, deck: Deck, columns: int, rows: int, color: bool) -> list[str]:
+    columns, rows = max(1, columns), max(1, rows)
     if columns < 12 or rows < 7:
-        return "\x1b[H\x1b[2J" + clip("arcana · q quit", columns)
+        return [clip("arcana · q quit", columns)]
     title = "a r c a n a" + ("   ·   " + session.draw.date if session.draw.date else "   ·   three cards")
     revealed = session.visible and not session.private
     body_height = rows - 4  # title, spacer, status, and footer
@@ -150,7 +134,37 @@ def render(session: Session, deck: Deck, columns: int, rows: int, color: bool = 
             body += [""] + _reading(session, deck, columns, body_height - len(body) - 1)
     body += [""] * max(0, body_height - len(body))
     status = ("joint reading" if count == 3 else "reading") + " · h hide" if revealed else status
-    lines = [clip(title, columns), ""] + body[:body_height] + [clip(status, columns), clip(footer, columns)]
+    if columns < 70:
+        footer = "q quit · j/k cards" if session.private else "d read · h hide · j/k cards · q quit"
+    if columns < 36:
+        footer = "q quit" if session.private else "d read · h hide · q quit"
+    if session.new_day and columns < 70:
+        status = "new day available · n draw"
+    return [_center(clip(title, columns), columns), ""] + body[:body_height] + [_center(clip(status, columns), columns), _center(clip(footer, columns), columns)]
+
+
+def _edge(label: str, columns: int, left: str, right: str) -> str:
+    label = clip(label, max(0, columns - 2))
+    remaining = max(0, columns - 2 - width(label))
+    return left + "─" * (remaining // 2) + label + "─" * (remaining - remaining // 2) + right
+
+
+def render(session: Session, deck: Deck, columns: int, rows: int, color: bool = True) -> str:
+    columns, rows = max(1, columns - 1), max(1, rows)
+    if columns < 23 or rows < 12:
+        lines = _content(session, deck, columns, rows, color)
+    else:
+        inner_width = columns - 4
+        body = _content(session, deck, inner_width, rows - 2, color)
+        # No background fill: the frame sits naturally in the user's terminal.
+        def ink(text: str) -> str:
+            return "\x1b[38;2;153;137;180m" + text + "\x1b[0m" if color else text
+        lines = [ink(_edge(" ✧  ☽  ✦  ☾  ✧ ", columns, "╭", "╮"))]
+        for line in body:
+            padding = " " * max(0, inner_width - width(clean(line)))
+            lines.append(ink("│") + " " + line + padding + " " + ink("│"))
+        lines += [ink("│") + " " * (columns - 2) + ink("│")] * max(0, rows - 1 - len(lines))
+        lines.append(ink(_edge(" ✧ ", columns, "╰", "╯")))
     # Every resize clears formerly revealed text before repainting.
     return "\x1b[H\x1b[2J" + "\r\n".join(lines) + "\x1b[0m"
 

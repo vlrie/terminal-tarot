@@ -2,7 +2,7 @@
 
 ## Components and state
 
-Use a small Python package with `cli`, `deck`, `draw`, `art`, `display`, `providers`, and `storage` modules. The implementation uses Python 3.12+ and its standard library only: ANSI RGB cell rendering, termios input, asyncio event handling/subprocesses, Unicode width checks, and TOML configuration. External artwork is validated to contain only single-cell non-combining glyphs; other inputs receive cell-aware clipping and wrapping. No runtime packages or full-screen framework are needed.
+Use a small Python package with `cli`, `deck`, `draw`, `art`, `display`, `readings`, `meanings`, `providers`, and `storage` modules. The implementation uses Python 3.12+ and its standard library only: ANSI RGB cell rendering, termios input, asyncio event handling/subprocesses, Unicode width checks, and TOML configuration. External artwork is validated to contain only single-cell non-combining glyphs; other inputs receive cell-aware clipping and wrapping. No runtime packages or full-screen framework are needed.
 
 `Draw` contains schema/algorithm version, immutable ordered card IDs, orientations, spread, deck fingerprint, date/timezone when applicable, and source mode. `Session` adds selected card, visibility, terminal size, question in memory, and provider state. Provider states: idle, pending, complete, failed, cancelled. Each request carries a generation ID; discard late results from a replaced draw. Visibility is independent of provider completion.
 
@@ -49,3 +49,9 @@ The prompt supplies only structured card data, original Arcana reflection prompt
 Use platform-appropriate XDG config/data locations on Linux and conventional user application locations on macOS, with explicit overrides. Configuration holds provider argv and deck paths, never credentials. Protect created data directories and files with user-only permissions. Write daily state atomically under a file lock so concurrent panes agree. Corrupt state gets a clear diagnostic; never silently replace a persisted daily draw.
 
 No runtime files live in the source checkout. Pipe mode prints card names/orientations without ANSI or providers by default. `--json` emits versioned card data and exits; private text and seed material are excluded. `--once --interpret` is an explicit exception that waits for and prints interpretation; reject its combination with `--private`.
+
+## Frame, centering, and interpretation content
+
+`display` reserves the frame’s cells before computing the inner layout. ANSI-aware visible widths center both labels and art within each card panel, and the spread within its entire region. Card blocks are vertically centered when space permits. Very small panes omit the border. Color is confined to the original artwork and a muted violet frame; the terminal background is untouched.
+
+`meanings` contains original upright/reversed prompts for each of the 56 minor cards. `readings` supplies the offline synthesis, suit relationships, and card-specific or suit-specific optional practices and questions. Providers receive that structured content as suggestions, with instructions to write a connected, evocative reflection rather than reproduce a template. These prose changes do not alter card IDs, deck fingerprints, seed material, or daily selections.

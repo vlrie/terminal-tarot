@@ -49,7 +49,7 @@ Without a seed word, your daily card is saved locally and remains the same when 
 
 ## A pane to live beside
 
-Open a tmux split and run `arcana 1`. Arcana stays there until you quit. It adapts to pane width and height: artwork scales down instead of disappearing in short panes, three cards stay side by side where practical, and very narrow panes let you browse one at a time. A revealed reading moves beside the cards in wide panes and below them in narrower ones. Resizing preserves your draw and hide/reveal state. It never changes your tmux layout or silently replaces a card at midnight.
+Open a tmux split and run `arcana 1`. Arcana stays there until you quit. It adapts to pane width and height: artwork scales down instead of disappearing in short panes, three cards stay side by side where practical, and very narrow panes let you browse one at a time. A revealed reading moves beside the cards in wide panes and below them in narrower ones. Resizing preserves your draw and hide/reveal state. A violet moon-and-star frame follows the pane edges, and each illustration and label is centered within the spread. The frame gives way to a compact view in tiny panes. `--no-color` keeps the ornament in monochrome. Arcana never changes your tmux layout or silently replaces a card at midnight.
 
 | Key | Action |
 | --- | --- |
@@ -65,7 +65,9 @@ Open a tmux split and run `arcana 1`. Arcana stays there until you quit. It adap
 
 ## Give the cards a voice
 
-No AI provider is required. Press `d` without one for a short local reflection. To use an already authenticated CLI:
+No AI provider is required. Press `d` without one for a local reflection. Every minor card has its own upright and reversed meaning; three-card readings also consider the pattern across suits and major arcana.
+
+Readings have three parts: **The thread**, **A small ritual**, and **A question to carry**. The ritual is an optional action for an ordinary day, requiring no purchases or special objects. AI readings use a more evocative, card-specific voice while leaving the interpretation open. To use an already authenticated CLI:
 
 ```sh
 arcana 1 --provider claude

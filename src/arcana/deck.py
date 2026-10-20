@@ -7,6 +7,7 @@ import json
 import shutil
 
 from .art import Cell, parse
+from .meanings import MINOR_MEANINGS
 
 MAJORS = [
     ("The Fool", "Begin with curiosity; leave room to learn.", "Pause before the leap; notice what you have overlooked."),
@@ -34,7 +35,6 @@ MAJORS = [
 ]
 SUITS = [("wands", "initiative"), ("cups", "connection"), ("swords", "discernment"), ("coins", "material care")]
 RANKS = ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Page", "Knight", "Queen", "King"]
-RANK_MEANINGS = ["an opening", "a choice", "cooperation", "stability", "friction", "exchange", "persistence", "practice", "self-reliance", "completion", "curiosity", "movement", "stewardship", "responsibility"]
 
 
 @dataclass(frozen=True)
@@ -78,9 +78,9 @@ def discover(explicit: str | None) -> Path | None:
 def load(art_dir: str | None = None, major: bool = False) -> Deck:
     definitions = [Card(f"major-{i:02}", name, f"tarot-0major_arcana{i:02}", up, rev) for i, (name, up, rev) in enumerate(MAJORS)]
     if not major:
-        for suit_index, (suit, theme) in enumerate(SUITS, 1):
-            for rank, (name, meaning) in enumerate(zip(RANKS, RANK_MEANINGS), 1):
-                definitions.append(Card(f"{suit}-{rank:02}", f"{name} of {suit.title()}", f"tarot-{suit_index}{suit}{rank:02}", f"Explore {meaning} through {theme}.", f"Reconsider how {meaning} shapes your {theme}."))
+        for suit_index, (suit, _) in enumerate(SUITS, 1):
+            for rank, (name, (upright, reversed)) in enumerate(zip(RANKS, MINOR_MEANINGS[suit], strict=True), 1):
+                definitions.append(Card(f"{suit}-{rank:02}", f"{name} of {suit.title()}", f"tarot-{suit_index}{suit}{rank:02}", upright, reversed))
     path = discover(art_dir)
     cards = []
     notices = []
