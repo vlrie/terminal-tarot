@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from arcana.art import Cell
 from arcana.deck import Deck, load
-from arcana.display import Session, _cards, render
+from arcana.display import Renderer, Session, render
 from arcana.draw import Draw, Pick, create
 from arcana.meanings import MINOR_MEANINGS
 from arcana.providers import prompt
@@ -20,7 +20,7 @@ class PresentationTests(unittest.TestCase):
         with patch("arcana.deck.discover", return_value=None):
             plain = load()
         grid = tuple(tuple(Cell("#", (50, 80, 120)) for _ in range(17)) for _ in range(25))
-        self.deck = Deck(tuple(replace(card, grid=grid) for card in plain.cards), plain.fingerprint, None, ())
+        self.deck = Deck(tuple(replace(card, artwork=grid) for card in plain.cards), plain.fingerprint, None, ())
         self.draw = create(self.deck, 3, "presentation", "seeded")
 
     def test_frame_follows_pane_and_holds_privacy(self):
@@ -43,7 +43,7 @@ class PresentationTests(unittest.TestCase):
     def test_each_card_and_the_whole_spread_are_centered(self):
         for count in (1, 3):
             draw = create(self.deck, count, "center", "seeded")
-            lines = [clean(line) for line in _cards(Session(draw), self.deck, 100, 35, True)]
+            lines = [clean(line.text) for line in Renderer(self.deck).cards(Session(draw), 100, 35)]
             art_row = next(line for line in lines if "#" in line)
             runs = list(re.finditer(r"#+", art_row))
             self.assertEqual(len(runs), count)

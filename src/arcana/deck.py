@@ -1,12 +1,13 @@
 """Canonical card identities, original fallback meanings, and external art."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from functools import cached_property
 from hashlib import sha256
 from pathlib import Path
 import json
 import shutil
 
-from .art import Cell, parse
+from .art import Grid, parse, rotate
 from .meanings import MINOR_MEANINGS
 
 MAJORS = [
@@ -44,8 +45,23 @@ class Card:
     filename: str
     upright: str
     reversed: str
-    grid: tuple[tuple[Cell, ...], ...] = ()
+    artwork: bytes | Grid = field(default=b"", repr=False)
     source_sha256: str | None = None
+
+    @cached_property
+    def grid(self) -> Grid:
+        if not isinstance(self.artwork, bytes):
+            return self.artwork
+        if not self.artwork:
+            return ()
+        try:
+            return parse(self.artwork.decode("utf-8"))[0]
+        except (ValueError, UnicodeError) as error:
+            raise ValueError(f"Cannot load {self.filename}: {error}") from error
+
+    @cached_property
+    def inverted_grid(self) -> Grid:
+        return rotate(self.grid)
 
     def meaning(self, reversed: bool) -> str:
         return self.reversed if reversed else self.upright
@@ -58,8 +74,12 @@ class Deck:
     art_dir: Path | None
     notices: tuple[str, ...]
 
+    @cached_property
+    def _index(self) -> dict[str, Card]:
+        return {card.id: card for card in self.cards}
+
     def by_id(self, card_id: str) -> Card:
-        return next(c for c in self.cards if c.id == card_id)
+        return self._index[card_id]
 
 
 def discover(explicit: str | None) -> Path | None:
@@ -89,11 +109,11 @@ def load(art_dir: str | None = None, major: bool = False) -> Deck:
     for card in definitions:
         if path:
             try:
-                data = (path / card.filename).read_bytes()
+                with (path / card.filename).open("rb") as source:
+                    data = source.read(256 * 1024 + 1)
                 if len(data) > 256 * 1024:
                     raise ValueError("art file exceeds size limit")
-                grid, _ = parse(data.decode("utf-8"))
-                card = Card(card.id, card.name, card.filename, card.upright, card.reversed, grid, sha256(data).hexdigest())
+                card = Card(card.id, card.name, card.filename, card.upright, card.reversed, data, sha256(data).hexdigest())
             except (OSError, ValueError, UnicodeError) as error:
                 raise ValueError(f"Cannot load {card.filename}: {error}") from error
         cards.append(card)

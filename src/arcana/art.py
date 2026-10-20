@@ -15,6 +15,9 @@ class Cell:
     bg: RGB | None = None
 
 
+Grid = tuple[tuple[Cell, ...], ...]
+
+
 # Paired 180-degree shapes, including the deck's legacy-computing blocks.
 _PAIRS = [
     ("╭", "╯"), ("╮", "╰"), ("┌", "┘"), ("┐", "└"),

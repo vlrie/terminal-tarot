@@ -1,3 +1,4 @@
+from dataclasses import replace
 import json
 import multiprocessing
 from pathlib import Path
@@ -85,9 +86,9 @@ class CoreTests(unittest.TestCase):
             self.assertNotIn("SECRET_SENTINEL", result)
             self.assertLessEqual(len(clean(result).splitlines()), rows)
             self.assertTrue(all(width(line) <= max(1, columns - 1) for line in clean(result).splitlines()))
-        session.visible = True
+        session = replace(session, visible=True)
         self.assertIn("SECRET_SENTINEL", render(session, self.deck, 120, 40))
-        session.private = True
+        session = replace(session, private=True)
         self.assertNotIn("SECRET_SENTINEL", render(session, self.deck, 120, 40))
 
     def test_terminal_text_sanitization(self):

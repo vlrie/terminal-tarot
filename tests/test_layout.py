@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 from arcana.art import Cell, fit, rotate
 from arcana.deck import Deck, load
-from arcana.display import Session, local_reading, render, terminal_size
+from arcana.display import Renderer, Session, local_reading, render
+from arcana.terminal import terminal_size
 from arcana.draw import create
 from arcana.providers import prompt
 from arcana.text import clean, width
@@ -19,7 +20,7 @@ class LayoutTests(unittest.TestCase):
         with patch("arcana.deck.discover", return_value=None):
             plain = load()
         grid = tuple(tuple(Cell("#", (x * 10, y * 10, 0)) for x in range(17)) for y in range(25))
-        self.deck = Deck(tuple(replace(card, grid=grid) for card in plain.cards), plain.fingerprint, None, ())
+        self.deck = Deck(tuple(replace(card, artwork=grid) for card in plain.cards), plain.fingerprint, None, ())
         self.draw = create(self.deck, 3, "layout", "seeded")
 
     def test_art_fits_and_restores_without_mutating_source(self):
@@ -56,22 +57,25 @@ class LayoutTests(unittest.TestCase):
                 self.assertIn("JOINED_SENTINEL", text)
                 self.assertLessEqual(len(text.splitlines()), rows)
                 self.assertTrue(all(width(line) <= columns - 1 for line in text.splitlines()))
-        session.visible = False
+        session = replace(session, visible=False)
         self.assertNotIn("JOINED_SENTINEL", render(session, self.deck, 120, 40))
-        session.private, session.visible = True, True
+        session = replace(session, private=True, visible=True)
         self.assertNotIn("JOINED_SENTINEL", render(session, self.deck, 120, 40))
         self.assertEqual(session.draw, self.draw)
 
     def test_reading_scroll_reclamps_after_resize(self):
         session = Session(self.draw, visible=True, reading="words " * 1000, scroll=10000)
-        render(session, self.deck, 120, 40)
-        self.assertLess(session.scroll, 10000)
-        session.reading = "short"
-        render(session, self.deck, 80, 24)
-        self.assertEqual(session.scroll, 0)
+        renderer = Renderer(self.deck)
+        frame = renderer.frame(session, 120, 40)
+        self.assertLess(frame.scroll, 10000)
+        self.assertEqual(session.scroll, 10000)  # Rendering cannot mutate state.
+        session = replace(session, reading="short")
+        frame = renderer.frame(session, 80, 24)
+        self.assertEqual(frame.scroll, 0)
+        self.assertEqual(session.scroll, 10000)
 
     def test_actual_terminal_size_overrides_stale_environment(self):
-        with patch.dict(os.environ, COLUMNS="200", LINES="80"), patch("arcana.display.os.get_terminal_size", return_value=os.terminal_size((44, 18))):
+        with patch.dict(os.environ, COLUMNS="200", LINES="80"), patch("arcana.terminal.os.get_terminal_size", return_value=os.terminal_size((44, 18))):
             self.assertEqual(terminal_size(), (44, 18))
 
     def test_joint_reading_uses_every_card_and_orientation(self):

@@ -88,7 +88,7 @@ class TerminalTests(unittest.TestCase):
                 terminal.read_until(b"DIVINATION_SENTINEL")
                 terminal.send(b"h")
                 output = terminal.drain()
-                self.assertIn(b"\x1b[2J", output)
+                self.assertIn(b"\x1b[K", output)
                 self.assertNotIn(b"DIVINATION_SENTINEL", output)
                 terminal.resize(38, 15)
                 self.assertNotIn(b"DIVINATION_SENTINEL", terminal.drain())
@@ -193,5 +193,16 @@ class TerminalTests(unittest.TestCase):
                 terminal.resize(80, 24)
                 self.assertNotIn(b"JOINT_SENTINEL", terminal.drain())
                 self.assertEqual(requests.read_text(), "one\n")
+            finally:
+                terminal.close()
+
+    def test_ignored_keys_do_not_repaint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            terminal = Terminal(['3'], Path(directory))
+            try:
+                terminal.read_until(b'divination hidden')
+                terminal.drain()
+                terminal.send(b'xxxxh')
+                self.assertEqual(terminal.drain(0.25), b'')
             finally:
                 terminal.close()

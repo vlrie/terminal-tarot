@@ -44,3 +44,7 @@ Three-card prompts explicitly ask for one connected reading, and the offline fal
 ## Framed presentation and richer readings
 
 Presentation checks verify a closed moon-and-star border at multiple widths and heights, exact cell bounds with and without color, centered individual illustrations and complete spreads, monochrome decoration, and hidden-reading privacy. Existing PTY resize/reveal/hide tests run against the framed layout. The deck golden vectors remain unchanged. Offline reflections use distinct orientation-specific prompts for all 56 minor cards, a joined spread thread, and an optional practice and reflective question. AI response quality remains a live-provider check; the local suite verifies the structured prompt and offline behavior.
+
+## Python optimization
+
+The Python refactor preserves 48 reference frames byte for byte. Additional tests cover lazy parsing with stable fingerprints, deferred rejection of invalid artwork, bounded/reusable art views, wrapped-prose reuse, immutable state transitions, changed-row screen updates, and erasing old private text. The full PTY suite now also verifies ignored keys emit no output. PERFORMANCE.md records before/after measurements and the reproducible benchmark command.

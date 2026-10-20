@@ -156,11 +156,14 @@ Linux is tested. macOS paths and POSIX terminal handling are implemented, but st
 ```sh
 PYTHONPATH=src uv run --no-project python -m unittest discover -s tests -v
 uv build
+
+# Startup, rendering, and terminal-output measurements
+PYTHONPATH=src uv run --no-project python benchmarks/benchmark.py
 ```
 
 The suite covers deterministic draws, concurrent daily state, all locally available artwork, resizing and centering, privacy, hidden input, provider failure/cancellation, and actual terminal interaction through pseudo-terminals. Runtime dependencies: none.
 
-[Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/VERIFICATION.md) · [Screenshot notes](docs/screenshots/README.md)
+[Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/VERIFICATION.md) · [Performance](docs/PERFORMANCE.md) · [Screenshot notes](docs/screenshots/README.md)
 
 ## Credits
 

@@ -13,9 +13,10 @@ import tty
 from zoneinfo import ZoneInfoNotFoundError
 
 from . import __version__
-from .art import ansi_row, rotate
+from .art import ansi_row
 from .deck import load
-from .display import Session, run
+from .app import run
+from .state import Session
 from .draw import create, normalize
 from .providers import ProviderError, command, interpret, prompt
 from .storage import daily, load_config, today
@@ -126,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
                 card = deck.by_id(pick.card_id)
                 print(f"{pick.position} · {card.name} ({'reversed' if pick.reversed else 'upright'})")
                 if sys.stdout.isatty() and card.grid:
-                    for row in rotate(card.grid) if pick.reversed else card.grid:
+                    for row in card.inverted_grid if pick.reversed else card.grid:
                         print(ansi_row(row, color))
                 print()
             if args.interpret:
