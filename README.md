@@ -10,7 +10,7 @@
 
 </div>
 
-**Arcana** is a terminal tarot app for a card of the day or a three-card spread. Built around the tarot art in [arttime](https://github.com/poetaman/arttime), it stays in a tmux pane with centered cards, inverse artwork, and a resizing moon-and-star border.
+**Arcana** is a terminal tarot app for a card of the day or a three-card spread. Built around the tarot art in [arttime](https://github.com/poetaman/arttime), it stays in a tmux pane decorating your workspace with a touch of magic.
 
 Readings work offline, with optional background divination from Claude Code, Codex CLI, or another configured CLI. Keep the cards visible and show or hide the interpretation when you want to. The command is `arcana`.
 
