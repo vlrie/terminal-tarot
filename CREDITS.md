@@ -1,19 +1,29 @@
 # Credits and artwork provenance
 
-Arcana's concept is inspired by [arttime](https://github.com/poetaman/arttime), authored and maintained by Aman Mehra. Thank you to its maintainers and contributing artists for making terminal art worth lingering over.
+Arcana is inspired by **[arttime](https://github.com/poetaman/arttime)**, authored and maintained by **Aman Mehra**. Thank you to its maintainers and the individual artists whose work gives terminals a little life.
 
-The first deck is intended to load arttime's tarot collection from an existing local installation. Local inspection on 2026-10-19 found 78 files: 22 major arcana and 14 each of wands, cups, swords, and coins. Individual artist provenance has not yet been established; preserve original markings and record per-file credits before distributing any artwork. Do not attribute every illustration to the software author without evidence.
+## Runtime artwork
 
-The installed launcher references three upstream documents:
+Arcana loads tarot illustrations from an existing local arttime installation. It does not bundle or download arttime code or deck files. The local collection inspected during development contains 78 cards: 22 major arcana and 14 each of wands, cups, swords, and coins.
 
-- [LICENSE_CODE](https://github.com/poetaman/arttime/blob/master/LICENSE_CODE)
-- [LICENSE_ART](https://github.com/poetaman/arttime/blob/master/LICENSE_ART)
-- [LICENSE_ADDENDUM_CFLA](https://github.com/poetaman/arttime/blob/master/LICENSE_ADDENDUM_CFLA)
+Artwork remains the property of its respective artists. The software author and art curator should not be assumed to be the artist of every illustration. Original in-art markings are retained when rendering cards, including in the demonstration screenshots; the exact individual authorship of the displayed tarot cards has not been independently established.
 
-These links identify documents to verify, not a statement of their current terms. They were absent from the installed share directory, and remote retrieval did not succeed during this scoping session. No license permissions are inferred from public availability or installation.
+## README screenshots
 
-This repository contains original Arcana code and prose, licensed under MIT (see LICENSE), and no copied arttime code, meaning text, or assets. External artwork retains its own upstream terms. Licensing and artist provenance remain prerequisites for any future asset redistribution.
+The screenshots show selected illustrations from the installed arttime deck in Arcana's actual terminal display. They document this personal, noncommercial companion project and are not a replacement for the upstream collection. The user-supplied screenshots show The Fool, Six of Wands, and The Tower in the three-card spread, and The Chariot in the daily-card view. They were captured on 2026-10-20.
 
-The user authorizes an upstream fork if needed. Prefer a companion application initially. Before vendoring, forking modified assets, or distributing reversed variants, pin an upstream commit, review all applicable license documents, retain notices, identify artwork credits, document modifications, and include the required terms. If terms prevent the intended distribution, retain local loading or obtain separately licensed artwork.
+The artwork in screenshots **is excluded from Arcana's MIT license** and retains its upstream rights. Screenshot capture notes are in [docs/screenshots/README.md](docs/screenshots/README.md).
 
-Arcana is independent and does not claim upstream affiliation or endorsement.
+## Upstream terms
+
+Retrieved on 2026-10-20:
+
+- [Upstream LICENSE_ART](https://github.com/poetaman/arttime/blob/main/LICENSE_ART), with a [preserved local copy](docs/third-party/arttime/LICENSE_ART).
+- [Upstream LICENSE_ADDENDUM_CFLA](https://github.com/poetaman/arttime/blob/main/LICENSE_ADDENDUM_CFLA), with a [preserved local copy](docs/third-party/arttime/LICENSE_ADDENDUM_CFLA).
+- [Upstream LICENSE_CODE](https://github.com/poetaman/arttime/blob/main/LICENSE_CODE), relevant if any upstream code is reused later.
+
+LICENSE_ART describes personal noncommercial use and states that individual artists retain the authority to set their own terms. The curation addendum applies to the collection. These notices do not offer a blanket MIT or commercial-use grant for the pictured artwork. The upstream revision observed at retrieval was `38c2955a7c16d6900cc121265595347266b18af8`; this is a reference for the current notices, not a claim that the locally installed deck is that revision.
+
+## Original work
+
+Arcana's original code, frame, reflection prose, and documentation are licensed under [MIT](LICENSE). No upstream artwork or meaning text is embedded in the source. Arcana is an independent companion project and does not claim upstream affiliation or endorsement.
