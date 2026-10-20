@@ -13,3 +13,9 @@ Two correctness findings: batched keystrokes could drop the privacy hide command
 ## Verification
 
 The resulting 20-test suite and source type check pass. A separate tmux smoke passed wide/narrow layouts and quit. An installable wheel was built, installed in a clean environment, and checked for accidental artwork or private-data inclusion. User installation exposes the `arcana` command. Human aesthetic review of all reversed glyph approximations, live authenticated provider checks, and macOS on-device testing remain documented release limits rather than claims of completed validation.
+
+## Python performance refactor
+
+Baseline `d67c7ef`, implementation `03daa23`. Independent Standards and Spec reviews found no actionable issues. The reviewers checked deferred artwork validation, unchanged draw identity, immutable state, bounded in-memory caching, typed event handling, changed-row erasure, and terminal/provider cleanup.
+
+40 tests and source type checking passed. 48 reference frames matched the original output byte for byte. An isolated tmux smoke passed, and the optimized wheel was built and installed in a separate environment with all new modules verified. Measurements and the reproducible benchmark are recorded in PERFORMANCE.md.
