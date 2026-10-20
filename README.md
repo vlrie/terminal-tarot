@@ -2,7 +2,7 @@
 
 # ✧ terminal tarot ✧
 
-**a little tarot app for a tmux pane.**
+**Daily cards and three-card readings, in your terminal.**
 
 [![Checks](https://github.com/vlrie/terminal-tarot/actions/workflows/check.yml/badge.svg)](https://github.com/vlrie/terminal-tarot/actions/workflows/check.yml)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-9989b4)](pyproject.toml)
@@ -10,34 +10,34 @@
 
 </div>
 
-so, [arttime](https://github.com/poetaman/arttime) has tarot cards as terminal art. I wanted a mini app that could pull a card of the day or a 3-card spread and just stay on screen. With inverse cards, a border that looks a bit mystical, and optional divination from claude/codex/whatever is plugged in.
+**Arcana** is a terminal tarot app for a card of the day or a three-card spread. Built around the tarot art in [arttime](https://github.com/poetaman/arttime), it stays in a tmux pane with centered cards, inverse artwork, and a resizing moon-and-star border.
 
-The command is `arcana`.
+Readings work offline, with optional background divination from Claude Code, Codex CLI, or another configured CLI. Keep the cards visible and show or hide the interpretation when you want to. The command is `arcana`.
 
 <p align="center">
   <img src="docs/screenshots/three-cards.png" width="560" alt="The Fool, Six of Wands, and reversed Tower centered inside Arcana’s resizing moon-and-star frame, with divination hidden">
 </p>
 
-*The Fool, Six of Wands, and The Tower reversed. Divination is hidden here.*
+*The Fool · Six of Wands · The Tower, reversed. Divination is hidden by default.*
 
-## what's in here
+## Features
 
-| | |
+| Feature | Details |
 | --- | --- |
-| **Card of the day** | Pull it again that day and you get the same card. |
-| **3-card spread** | Situation → Tension → Invitation. No duplicate cards. |
-| **A word to seed the draw** | `--ritual` asks for a word, without showing what you type. Works for both 1 and 3 cards. |
-| **All 78 cards** | Major and minor arcana. `--major` if you only want the major ones. |
-| **Inverse cards** | The art actually rotates. The labels stay readable, and the interpretation accounts for the reversal. |
-| **It stays on screen** | Leave it in a tmux pane. Resize it; the cards and border follow. |
-| **A joint reading** | The 3 cards get read together, with a small optional ritual and a question to think about. |
-| **Optional AI** | Local readings work without it. Claude Code, Codex CLI, or a custom CLI can do the divination in the background. |
-| **Show/hide** | `d` toggles the reading. `h` hides it immediately. `--private` keeps it to artwork only. |
-| **Small app** | Python standard library at runtime. No account, database, daemon, or web server. |
+| **Card of the day** | A locally saved daily draw, stable when you reopen it. |
+| **Three-card spreads** | Situation → Tension → Invitation, drawn without replacement. |
+| **Word-seeded draws** | `--ritual` privately asks for a word to seed either a one-card or three-card draw. The word is never sent to an AI provider. |
+| **All 78 cards** | Major and minor arcana, with a major-only option. |
+| **Inverse cards** | The illustration rotates; external labels stay readable, and the interpretation accounts for the reversal. |
+| **Persistent display** | Leave it in a tmux pane. Cards, readings, and the mystical frame adapt as you resize. |
+| **Joint readings** | Three cards read together, followed by a small optional ritual and a reflective question. |
+| **Optional AI** | Offline reflections, or background requests to Claude Code, Codex CLI, or another configured CLI. |
+| **Show/hide controls** | Reveal/hide with `d`, hide immediately with `h`, or use artwork-only `--private` mode. |
+| **No runtime dependencies** | Python standard library only at runtime. No account, database, daemon, or web server. |
 
-## get it running
+## Getting started
 
-You need **Python 3.12+**, [uv](https://docs.astral.sh/uv/), and Linux. Install [arttime](https://github.com/poetaman/arttime#installation) for the card art. Without it, you still get card names and local readings.
+Requires **Python 3.12+**, [uv](https://docs.astral.sh/uv/), and Linux. Install [arttime](https://github.com/poetaman/arttime#installation) for the illustrated deck. Without it, Arcana still works with named cards and original reflections.
 
 ```sh
 git clone https://github.com/vlrie/terminal-tarot.git
@@ -47,92 +47,84 @@ uv tool install .
 arcana 1
 ```
 
-You can also run `./arcana 1` from the repo without installing the package. The launcher uses `uv`; there are no runtime dependencies to download.
+Or run `./arcana 1` directly from the checkout without installing the package. That launcher uses `uv`; it downloads no runtime dependencies.
 
-The art wants a UTF-8 terminal with truecolor and a font that supports Unicode Symbols for Legacy Computing. If the cards look odd, check the font. A dark background helps too.
-
-If your arttime files live somewhere else:
+Use a UTF-8 terminal with truecolor and Unicode Symbols for Legacy Computing support. A dark background suits the deck. If your arttime installation is elsewhere:
 
 ```sh
 arcana 3 --art-dir /path/to/arttime/textart
 ```
 
-## pull some cards
+## Drawing cards
 
 ```sh
 arcana 1                         # card of the day
-arcana 1 --ritual                # ask for a word to seed today's card
-arcana 3                         # 3-card spread
-arcana 3 --ritual                # same idea, with a word
-arcana 3 --major                 # major arcana only
-arcana 1 --upright-only          # no inverse cards
-arcana 1 --private               # just the art, no divination
-arcana 1 --once                  # print it and exit
-arcana 3 --json                  # card data for scripts
+arcana 1 --ritual                # privately enter a word for today's draw
+arcana 3                         # situation · tension · invitation
+arcana 3 --ritual                # a repeatable word-seeded spread
+arcana 3 --major                 # only the 22 major arcana
+arcana 1 --upright-only          # omit reversals
+arcana 1 --private               # artwork only; no provider or reveal
+arcana 1 --once                  # print the draw and exit
+arcana 3 --json                  # public card data for scripts
 ```
 
-The seed word isn't echoed or saved, and it doesn't go to the AI. Same word and deck version give you the same spread. For `arcana 1`, the date is part of the seed too. For `arcana 3`, it isn't.
+The same word and deck version reproduce the same spread. For `arcana 1`, the date is part of the seed; for `arcana 3`, it isn't. The word is not echoed or saved. Leave it empty for an unseeded draw: daily cards stay the same that day, while three-card spreads are fresh each time.
 
-Leave the word empty for an unseeded draw. The daily card still stays the same for that day; a 3-card spread is fresh each time.
-
-Open a tmux split and leave it there. The app won't move your panes or swap your card at midnight. Cards shrink to fit, and the reading moves beside or below them depending on the space. Very narrow panes let you browse one card at a time.
+Open a tmux split, run Arcana, and leave it there. It never rearranges your panes or silently replaces a card at midnight. Artwork shrinks to fit and returns to its original detail on expansion. Readings move beside the spread in wide panes and below it in narrower ones.
 
 <details>
-<summary>the daily card looks like this</summary>
+<summary>Card of the day</summary>
 
 ![The reversed Chariot as a daily card, centered inside Arcana’s frame](docs/screenshots/daily-card.png)
 
-*The Chariot, reversed. 2026-10-20.*
+*The Chariot, reversed, on 2026-10-20. The border and illustration follow the pane size.*
 
 </details>
 
-| Key | What it does |
+| Key | Action |
 | --- | --- |
-| `d` | Show/hide the divination |
-| `h` | Hide it immediately |
-| `j` / `k`, `→` / `←` | Move between cards in a narrow pane |
-| `↑` / `↓` | Scroll the reading |
-| `r` | Ask for another reading of the same cards |
-| `n` | Draw again; daily and seeded rules still apply |
-| `q`, Ctrl-C | Quit and cancel the background request |
+| `d` | Reveal or hide the reading |
+| `h` | Hide private text immediately |
+| `j` / `k`, `→` / `←` | Browse cards when the pane is very narrow |
+| `↑` / `↓` | Scroll a revealed reading |
+| `r` | Retry the reading for the same cards |
+| `n` | Draw again, respecting daily and seeded rules |
+| `q`, Ctrl-C | Quit and cancel any background request |
 
-## the divination bit
+## Readings and divination
 
-Press `d` for the built-in local reading. Every minor card has its own upright and reversed meaning. A 3-card reading also looks at the suits and how the cards relate to each other.
-
-The reading has a thread, a small optional ritual, and a question to carry. The ritual is something ordinary you can try; no shopping list or special objects required.
+Press `d` for a built-in offline reading. Every minor card has its own upright and reversed meaning, and three-card readings connect the spread as a whole, including shared suits and contrasts.
 
 ![The same three-card spread with its joined offline reading revealed below the cards](docs/screenshots/joint-reading.png)
 
-*This is the local reading. Scroll with `↑` / `↓` for the rest, or `h` when you want it out of sight.*
+*Press `d` to reveal the joined reading; scroll with `↑` / `↓` to reach the ritual and question. This screenshot shows the built-in offline reflection.*
 
-For an AI reading, use a CLI you're already logged into:
+To use an already authenticated CLI:
 
 ```sh
 arcana 1 --provider claude
 arcana 3 --ritual --provider codex
-arcana 3 --provider claude --question   # asks for a question, also hidden as you type
-arcana 1 --once --interpret            # print the local reading and exit
+arcana 3 --provider claude --question   # privately prompt for a question
+arcana 1 --once --interpret            # explicitly print an offline reflection
 ```
 
-Cards show up first; the request runs in the background. The answer stays hidden until you reveal it. Resizing or hiding/showing it doesn't send another request. If the provider fails, you still have your cards and local reading.
+The cards appear first. The request runs in the background and its answer stays hidden. Resizing, browsing, and toggling visibility never request another reading. If the provider fails, your cards and offline reflection remain available. AI prose may vary even when the draw is reproducible.
 
-The provider gets the cards, their positions and orientations, reflection prompts, and a question if you entered one. **It never gets your seed word.** Running a CLI locally doesn't mean the model is local; it may send the request to its service.
+Providers receive the cards, positions, orientations, original reflection prompts, and any question you explicitly enter. **They never receive the seed word.** A CLI running locally may still use a remote model service.
 
-The draw is repeatable. The AI's wording might not be.
+## Privacy
 
-## privacy
-
-- `--private` doesn't start a provider and doesn't let you reveal a reading. Just cards.
-- Arcana doesn't save words, questions, or readings. Hidden readings aren't printed before you reveal them.
-- Hiding something won't remove it from a screenshot, tmux capture history, or recording made while it was visible.
-- The saved daily state is a random install identity and public card draws, with user-only permissions.
-- `--no-color` if you'd prefer the whole thing in monochrome.
+- `--private` never starts a provider and disables revealing interpretation.
+- Words, questions, and readings are not saved by Arcana. Hidden readings are not printed before reveal.
+- Hiding cannot retract screenshots, tmux capture history, or recordings of previously revealed text.
+- Daily state contains a random install identity and public card draws, stored locally with user-only permissions.
+- `--no-color` keeps the frame and artwork monochrome.
 
 <details>
-<summary>config and other CLIs</summary>
+<summary>Configuration and other CLI providers</summary>
 
-On Linux, config lives at `~/.config/arcana/config.toml` (`XDG_CONFIG_HOME` is respected). Or pass `--config PATH`. CLI flags win over config.
+On Linux, use `~/.config/arcana/config.toml` (respects `XDG_CONFIG_HOME`), or pass `--config PATH`. CLI flags take precedence.
 
 ```toml
 provider = "claude"       # none, claude, codex, custom
@@ -141,7 +133,7 @@ provider = "claude"       # none, claude, codex, custom
 timeout = 45
 ```
 
-For another CLI, give it an argument array:
+For another CLI, supply an argument array:
 
 ```toml
 provider = "custom"
@@ -149,29 +141,29 @@ argv = ["my-reading-cli", "--plain"]
 timeout = 60
 ```
 
-The command reads a UTF-8 prompt from stdin and writes its answer to stdout. It runs in an empty temporary directory. Use absolute paths for scripts outside `PATH`. A custom command is something you trust; its own tools, logs, and privacy are up to that command.
+The command reads a UTF-8 prompt from stdin and writes the answer to stdout. It runs in an empty temporary directory. Use absolute paths for scripts outside `PATH`. Custom commands are trusted configuration and are responsible for their own tools, records, and privacy.
 
-The named adapters were checked against Claude Code 2.1.302 and Codex CLI 0.163.0 help. Claude runs with tools disabled, safe mode, no MCP servers, and no session persistence. Codex uses an ephemeral read-only session, skips user config/rules, and disables web search and the shell-tool feature. That limits agent behavior; it doesn't sandbox the provider itself. Your CLI version and authentication still matter.
+The named adapters were checked against Claude Code 2.1.302 and Codex CLI 0.163.0 help. Claude uses tools disabled, safe mode, no MCP servers, and no session persistence. Codex uses an ephemeral read-only session with user config/rules skipped, web search disabled, and the shell-tool feature disabled. These settings constrain agent behavior; they are not an OS sandbox for the provider itself. Live authenticated responses depend on your CLI version and account.
 
-Daily state lives at `~/.local/share/arcana/` (`XDG_DATA_HOME` is respected). Use `--data-dir PATH` to change it, or `--date YYYY-MM-DD` and `--timezone IANA/Zone` to set the daily identity explicitly.
+Linux state defaults to `~/.local/share/arcana/` (respects `XDG_DATA_HOME`). Override it with `--data-dir PATH`. `--date YYYY-MM-DD` and `--timezone IANA/Zone` make the daily identity explicit.
 
-Linux is tested. macOS paths and terminal handling are there, but still need an on-device check. Native Windows isn't supported.
+Linux is tested. macOS paths and POSIX terminal handling are implemented, but still need an on-device smoke test. Native Windows is unsupported.
 
 </details>
 
-## if you want to poke at it
+## Development
 
 ```sh
 PYTHONPATH=src uv run --no-project python -m unittest discover -s tests -v
 uv build
 ```
 
-Tests cover the draws, concurrent daily state, locally available artwork, resizing, centering, hidden input, privacy, and provider failure/cancellation. The interactive bits are tested through pseudo-terminals too.
+The suite covers deterministic draws, concurrent daily state, all locally available artwork, resizing and centering, privacy, hidden input, provider failure/cancellation, and actual terminal interaction through pseudo-terminals. Runtime dependencies: none.
 
-[Spec](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/VERIFICATION.md) · [Screenshot notes](docs/screenshots/README.md)
+[Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/VERIFICATION.md) · [Screenshot notes](docs/screenshots/README.md)
 
-## credit where it's due
+## Credits
 
-The art comes from **[arttime](https://github.com/poetaman/arttime)**, authored and maintained by **Aman Mehra**, and the individual artists whose work it collects. Go look at arttime as well. This is an independent companion app; there's no affiliation or endorsement.
+The tarot art comes from **[arttime](https://github.com/poetaman/arttime)**, authored and maintained by **Aman Mehra**, and the individual artists whose work it collects. Thank you for making this collection available. Arcana is an independent companion app, with no affiliation or endorsement.
 
-Arcana's original code and prose are [MIT](LICENSE). The deck files aren't bundled; the app reads your arttime installation. The screenshots show selected artwork for this personal, noncommercial project. That artwork keeps its own rights and isn't covered by Arcana's MIT license. [Credits and upstream notices are here.](CREDITS.md)
+The original Arcana code and prose use the [MIT license](LICENSE). The deck is loaded from an existing arttime installation; upstream code and deck files are not bundled. Screenshots show selected upstream artwork for this personal, noncommercial project; those illustrations retain their own rights and are excluded from Arcana's MIT grant. See [credits, artwork terms, and preserved notices](CREDITS.md).
